@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title data-vi="Push It: Sokoban Puzzle — Game đẩy thùng chơi offline" data-en="Push It: Sokoban Puzzle — Offline box-pushing game">Push It: Sokoban Puzzle — Game đẩy thùng chơi offline</title>
+  <meta name="description" content="Đẩy thùng vào ô sáng. 75 màn Sokoban khó dần, vuốt để đi, không đồng hồ đếm ngược, chơi offline. Miễn phí trên Android và iOS.">
+  <meta name="theme-color" content="#120f1c">
+  <link rel="canonical" href="https://nambui98.github.io/push-it/">
+  <link rel="icon" href="assets/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Push It: Sokoban Puzzle — Đẩy thùng vào ô sáng">
+  <meta property="og:description" content="75 màn Sokoban khó dần, vuốt để đi, không đồng hồ, chơi offline.">
+  <meta property="og:url" content="https://nambui98.github.io/push-it/">
+  <meta property="og:image" content="https://nambui98.github.io/push-it/assets/og-vi.jpg">
+  <meta property="og:image:width" content="1024">
+  <meta property="og:image:height" content="500">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>
+    // Gắn cờ TRƯỚC khung hình đầu tiên: phần tử hiện-khi-cuộn bắt đầu ở trạng thái
+    // ẩn, không bị "hiện → tắt → hiện dần" (nháy). Giảm chuyển động thì bỏ qua.
+    // GSAP không tải được sau 2.5 s thì gỡ cờ — trang không bao giờ bị trắng.
+    (function (h) {
+      if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      h.classList.add("js-motion");
+      setTimeout(function () { if (!window.gsap) h.classList.remove("js-motion"); }, 2500);
+    })(document.documentElement);
+  </script>
+</head>
+<body>
+  <div class="bar-shell">
+    <header class="bar wrap">
+      <a class="brand" href="./"><img src="assets/icon-192.png" alt="" width="38" height="38"><span class="wordmark">Push It</span></a>
+      <nav>
+        <a class="hide-sm" href="support.html" data-i18n="nav.support">Hỗ trợ</a>
+        <a class="hide-sm" href="privacy-policy.html" data-i18n="nav.privacy">Quyền riêng tư</a>
+        <span class="lang" role="group" aria-label="Ngôn ngữ / Language">
+          <button type="button" data-lang="vi" aria-pressed="true">VI</button>
+          <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        </span>
+        <a class="nav-cta" data-store="play" rel="noopener" data-i18n="nav.cta">Tải game</a>
+      </nav>
+    </header>
+  </div>
+
+  <main>
+    <!-- ================= HERO: cuộn trang = đẩy thùng ================= -->
+    <section class="hero">
+      <div class="sky" aria-hidden="true"></div>
+      <div class="hero-inner wrap">
+        <div class="copy">
+          <p class="eyebrow" data-i18n="hero.eyebrow">Game giải đố đẩy thùng</p>
+          <h1 data-i18n="hero.title">Đẩy thùng <span class="lit">vào ô sáng.</span></h1>
+          <p class="sub" data-i18n="hero.sub">75 màn Sokoban khó dần có chủ ý. Vuốt để đi, không đồng hồ đếm ngược, chơi offline.</p>
+          <div class="stores">
+            <a class="store" data-store="play" rel="noopener"><small data-i18n="store.play.small">Tải trên</small><span data-i18n="store.play">Google Play</span></a>
+            <a class="store alt" data-store="appStore" rel="noopener"><small data-i18n="store.ios.small">Tải trên</small><span data-i18n="store.ios">App Store</span></a>
+          </div>
+          <p class="soon-note" data-soon-for="appStore" hidden data-i18n="store.ios.soon">Sắp có trên App Store</p>
+          <p class="facts"><span data-i18n="fact.free">Miễn phí</span><span data-i18n="fact.ads">Có quảng cáo</span><span data-i18n="fact.iap">Không bán gì bằng tiền thật</span></p>
+        </div>
+
+        <div class="stage" aria-label="Một màn Push It: nhân vật đẩy thùng gỗ vào ô đích phát sáng">
+          <div class="beam b1" aria-hidden="true"></div>
+          <div class="beam b2" aria-hidden="true"></div>
+          <!-- hero.js vẽ bàn cờ isometric vào đây; không có JS thì còn ảnh chụp thật. -->
+          <div class="hud" hidden>
+            <div class="pill"><span class="k" data-i18n="hud.level">Màn</span><span class="v">1</span></div>
+            <div class="pill"><span class="k" data-i18n="hud.moves">Nước</span><span class="v"><span id="hud-moves">0</span><small>/3</small></span></div>
+            <div class="pill"><span class="k" data-i18n="hud.stars">Sao</span><span class="v"><span class="star">★</span><span class="star">★</span><span class="star">★</span></span></div>
+          </div>
+          <img class="stage-fallback" data-shot="play" src="assets/shots/vi/play.jpg" alt="" width="600" height="1342">
+          <div class="hint" hidden><i aria-hidden="true"></i><span data-i18n="hero.hint">Cuộn để đẩy thùng</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= Đường cong độ khó ================= -->
+    <section class="block wrap" aria-labelledby="curve-title">
+      <p class="kicker reveal" data-i18n="curve.kicker">75 màn · 6 thế giới</p>
+      <h2 id="curve-title" class="reveal" data-i18n="curve.title">Sáu thế giới. Mỗi thế giới dốc hơn.</h2>
+      <p class="lede reveal" data-i18n="curve.lede">Con số trên mỗi thanh là lời giải tối ưu — ít nước nhất để giải màn. Mọi bàn cờ đều đã được máy giải, nên đó là số thật chứ không phải ước lượng.</p>
+
+      <!-- Nguon: levels/world-0N/manifest.json, truong optimalMoves (min–max moi the gioi).
+           Doi man choi thi phai sua ca bang nay. -->
+      <div class="curve-card reveal">
+        <div class="curve" role="list">
+          <div class="row" role="listitem"><div class="name"><span data-i18n="w1">Nhập môn</span><span data-i18n="w1s">7 màn</span></div><div class="track"><div class="range" style="--min:3;--max:13"></div></div><div class="moves">3–13</div></div>
+          <div class="row" role="listitem"><div class="name"><span data-i18n="w2">Dễ</span><span data-i18n="w2s">12 màn</span></div><div class="track"><div class="range" style="--min:16;--max:33"></div></div><div class="moves">16–33</div></div>
+          <div class="row" role="listitem"><div class="name"><span data-i18n="w3">Trung bình</span><span data-i18n="w3s">12 màn</span></div><div class="track"><div class="range" style="--min:26;--max:48"></div></div><div class="moves">26–48</div></div>
+          <div class="row" role="listitem"><div class="name"><span data-i18n="w4">Khó</span><span data-i18n="w4s">16 màn</span></div><div class="track"><div class="range" style="--min:33;--max:53"></div></div><div class="moves">33–53</div></div>
+          <div class="row" role="listitem"><div class="name"><span data-i18n="w5">Chuyên gia</span><span data-i18n="w5s">16 màn</span></div><div class="track"><div class="range" style="--min:39;--max:75"></div></div><div class="moves">39–75</div></div>
+          <div class="row" role="listitem"><div class="name"><span data-i18n="w6">Bậc thầy</span><span data-i18n="w6s">12 màn</span></div><div class="track"><div class="range" style="--min:60;--max:90"></div></div><div class="moves">60–90</div></div>
+        </div>
+        <div class="axis" aria-hidden="true"><span></span><div class="ticks"><span>0</span><span>30</span><span>60</span><span>90</span></div><span class="moves" data-i18n="curve.moves">nước</span></div>
+        <p class="curve-note" data-i18n="curve.note">Mỗi thế giới trải ít nhất tám nước từ màn dễ nhất tới màn khó nhất, và trung bình khó hơn thế giới trước ít nhất năm nước.</p>
+      </div>
+    </section>
+
+    <!-- ================= Tính năng ================= -->
+    <section class="block wrap" aria-labelledby="feat-title">
+      <p class="kicker reveal" data-i18n="feat.kicker">Luật chơi</p>
+      <h2 id="feat-title" class="reveal" data-i18n="feat.title">Bình tĩnh, nhưng không dễ.</h2>
+      <div class="bento" style="margin-top:40px">
+        <article class="cell c-a reveal">
+          <h3 data-i18n="f1.t">Vuốt, bước, đẩy</h3>
+          <p data-i18n="f1.p">Vuốt một cái là đi một bước. Thùng chỉ đẩy được, không kéo được — tính trước vài nước, không thì thùng kẹt vào góc là hết đường.</p>
+          <div class="art"><svg class="mini-board" id="mini-board" viewBox="0 0 10 10" aria-hidden="true"></svg></div>
+        </article>
+        <article class="cell c-b reveal">
+          <h3 data-i18n="f2.t">Ba sao cho lời giải ngắn nhất</h3>
+          <p data-i18n="f2.p">Giải xong là qua màn. Chơi lại tệ hơn không bao giờ làm mất sao đã có.</p>
+          <div class="art"><div class="big-stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></div><div class="ratio" data-i18n="f2.ratio">≤ 110% số nước tối ưu</div></div>
+        </article>
+        <article class="cell c-c reveal">
+          <h3 data-i18n="f3.t">Không bao giờ bị chặn đường</h3>
+          <p data-i18n="f3.p">Mỗi màn có sẵn 3 lượt hoàn tác và 1 gợi ý chỉ nước đi tiếp theo. Cần thêm thì xem một quảng cáo ngắn, hoặc bỏ qua màn và quay lại sau.</p>
+          <div class="art btns" aria-hidden="true">
+            <span class="gbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/></svg><span data-i18n="pill.undo">Hoàn tác</span><span class="badge">3</span></span>
+            <span class="gbtn"><svg viewBox="0 0 24 24" fill="none" stroke="#ffc24d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span data-i18n="pill.hint">Gợi ý</span><span class="badge">1</span></span>
+          </div>
+        </article>
+        <article class="cell c-d reveal">
+          <h3 data-i18n="f4.t">Câu đố mới mỗi ngày</h3>
+          <div class="daily">
+            <div class="cal" aria-hidden="true"><b id="cal-month">Th 9</b><span id="cal-day">24</span></div>
+            <p data-i18n="f4.p">Mỗi ngày một màn, giống nhau với mọi người trên thế giới.</p>
+          </div>
+          <div class="art chips">
+            <span class="chip" data-i18n="chip.offline">Chơi offline</span>
+            <span class="chip" data-i18n="chip.account">Không cần tài khoản</span>
+            <span class="chip" data-i18n="chip.langs">9 ngôn ngữ</span>
+            <span class="chip" data-i18n="chip.views">Góc nhìn 2.5D hoặc 2D</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ================= Ảnh chụp ================= -->
+    <section class="block wrap" aria-labelledby="shots-title">
+      <p class="kicker reveal" data-i18n="shots.kicker">Trong game</p>
+      <h2 id="shots-title" class="reveal" data-i18n="shots.title">Trông như thế này</h2>
+      <div class="fan" id="fan" style="margin-top:40px">
+        <figure><div class="phone"><img data-shot="menu" src="assets/shots/vi/menu.jpg" alt="" width="600" height="1342" loading="lazy"></div><figcaption data-i18n="s.menu">Vào chơi ngay từ menu</figcaption></figure>
+        <figure><div class="phone"><img data-shot="hard" src="assets/shots/vi/hard.jpg" alt="" width="600" height="1342" loading="lazy"></div><figcaption data-i18n="s.hard">Bàn Chuyên gia chật chội hơn</figcaption></figure>
+        <figure><div class="phone"><img data-shot="complete" src="assets/shots/vi/complete.jpg" alt="" width="600" height="1342" loading="lazy"></div><figcaption data-i18n="s.complete">Ba sao, lời giải gọn</figcaption></figure>
+        <figure><div class="phone"><img data-shot="levels" src="assets/shots/vi/levels.jpg" alt="" width="600" height="1342" loading="lazy"></div><figcaption data-i18n="s.levels">Chơi lại bất cứ màn nào</figcaption></figure>
+        <figure><div class="phone"><img data-shot="shop" src="assets/shots/vi/shop.jpg" alt="" width="600" height="1342" loading="lazy"></div><figcaption data-i18n="s.shop">Sân chơi, nhân vật, thùng</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- ================= Kết ================= -->
+    <section class="block closing" aria-labelledby="close-title">
+      <div class="wrap">
+        <svg class="target-mark reveal" viewBox="0 0 96 48" aria-hidden="true">
+          <ellipse cx="48" cy="24" rx="46" ry="22" fill="rgba(255,179,71,.18)"/>
+          <ellipse cx="48" cy="24" rx="30" ry="14" fill="none" stroke="#ffe0a3" stroke-width="4"/>
+          <ellipse cx="48" cy="24" rx="9" ry="4.5" fill="#f3a95f"/>
+        </svg>
+        <h2 id="close-title" class="reveal" data-i18n="close.title">Bảy mươi lăm cái thùng đang chờ.</h2>
+        <div class="stores reveal">
+          <a class="store" data-store="play" rel="noopener"><small data-i18n="store.play.small">Tải trên</small><span data-i18n="store.play">Google Play</span></a>
+          <a class="store alt" data-store="appStore" rel="noopener"><small data-i18n="store.ios.small">Tải trên</small><span data-i18n="store.ios">App Store</span></a>
+        </div>
+        <p class="soon-note" data-soon-for="appStore" hidden data-i18n="store.ios.soon">Sắp có trên App Store</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot wrap">
+    <span data-i18n="foot.rights">© 2026 TECHNOLOGY PARADISE COMPANY LIMITED</span>
+    <nav>
+      <a href="support.html" data-i18n="nav.support">Hỗ trợ</a>
+      <a href="privacy-policy.html" data-i18n="nav.privacy">Quyền riêng tư</a>
+      <a href="mailto:bvnam98@gmail.com">bvnam98@gmail.com</a>
+    </nav>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+  <script src="assets/site.js" defer></script>
+  <script src="assets/hero.js" defer></script>
+</body>
+</html>
